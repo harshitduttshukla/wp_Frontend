@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { background: #FAFAF8; color: #3F3F3F; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; }
+input[type="checkbox"] { accent-color: #F59A16; width: 16px; height: 16px; }
+::selection { background: #F59A16; color: #1F1F23; }
+@layer components {
+  .btn { @apply inline-flex items-center gap-1 rounded-md border border-brand px-3 py-1.5 text-sm font-semibold text-accent bg-white hover:bg-[#FEF3E2] disabled:opacity-50; }
+  .btn-primary { @apply inline-flex items-center gap-1 rounded-md bg-brand px-4 py-2 text-sm font-bold text-charcoal hover:bg-brandhover disabled:opacity-50; }
+  .input { @apply w-full rounded-md border border-[#D4D4D4] bg-white px-2 py-1.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30; }
+  .label { @apply mb-1 block text-sm font-semibold; }
+  .card { @apply rounded-lg border border-[#E8E8E8] bg-white shadow-sm; }
+  .link-danger { @apply text-[#b32d2e] hover:underline; }
+  .link { @apply text-accent hover:text-brandhover hover:underline; }
+}
