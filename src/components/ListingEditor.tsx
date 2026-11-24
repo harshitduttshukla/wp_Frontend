@@ -7,6 +7,7 @@ import RichText from "./RichText";
 import MediaPicker from "./MediaPicker";
 import TermBox from "./TermBox";
 import Box from "./Box";
+import ListingPreview from "./ListingPreview";
 
 type Field = { key: string; label: string; type?: "text" | "number" | "textarea" | "select" | "time" | "email" | "tel" | "url"; options?: string[]; help?: string };
 
@@ -52,6 +53,7 @@ const DETAIL_TABS: { id: string; label: string; fields: Field[] }[] = [
     { key: "longitude", label: "Longitude", type: "number" },
     { key: "street_view", label: "Enable Google Street View", type: "select", options: ["no", "yes"] },
   ]},
+  { id: "faqs", label: "FAQs", fields: [] },
   { id: "owner", label: "Owner", fields: [
     { key: "owner_name", label: "Owner name" },
     { key: "owner_phone", label: "Owner phone", type: "tel" },
@@ -132,6 +134,7 @@ export default function ListingEditor({ id }: { id?: string }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(!!id);
+  const [preview, setPreview] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -275,6 +278,30 @@ export default function ListingEditor({ id }: { id?: string }) {
                   </div>
                 </div>
               )}
+              {detailTab === "faqs" && (() => {
+                const faqs: { q: string; a: string }[] = Array.isArray(details.faqs) ? details.faqs : [];
+                const setFaqs = (n: { q: string; a: string }[]) => setDetails({ ...details, faqs: n });
+                return (
+                  <div className="space-y-3">
+                    {faqs.length === 0 && <p className="text-sm text-[#666666]">No FAQs yet. Add common guest questions like parking, Wi-Fi or early check-in.</p>}
+                    {faqs.map((f, i) => (
+                      <div key={i} className="space-y-2 rounded border border-[#E8E8E8] p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold">FAQ {i + 1}</span>
+                          <div className="flex gap-2 text-xs">
+                            {i > 0 && <button type="button" className="link" onClick={() => { const n = [...faqs]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; setFaqs(n); }}>▲ Up</button>}
+                            {i < faqs.length - 1 && <button type="button" className="link" onClick={() => { const n = [...faqs]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; setFaqs(n); }}>▼ Down</button>}
+                            <button type="button" className="link-danger" onClick={() => setFaqs(faqs.filter((_, j) => j !== i))}>Remove</button>
+                          </div>
+                        </div>
+                        <input className="input" placeholder="Question" value={f.q} onChange={(e) => setFaqs(faqs.map((x, j) => j === i ? { ...x, q: e.target.value } : x))} />
+                        <textarea className="input" rows={3} placeholder="Answer" value={f.a} onChange={(e) => setFaqs(faqs.map((x, j) => j === i ? { ...x, a: e.target.value } : x))} />
+                      </div>
+                    ))}
+                    <button type="button" className="btn" onClick={() => setFaqs([...faqs, { q: "", a: "" }])}>+ Add FAQ</button>
+                  </div>
+                );
+              })()}
               {detailTab === "map" && Number.isFinite(lat) && Number.isFinite(lng) && details.latitude && details.longitude && (
                 <iframe title="Map preview" className="mt-5 h-64 w-full rounded border border-[#E8E8E8]" loading="lazy"
                   src={`https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`} />
@@ -299,6 +326,7 @@ export default function ListingEditor({ id }: { id?: string }) {
                 <button className="btn" disabled={saving} onClick={() => save("draft")}>
                   {status === "publish" ? "Switch to Draft" : "Save Draft"}
                 </button>
+                <button className="btn" type="button" onClick={() => setPreview(true)}>Preview</button>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <span>Status: <b>{savedStatus ? STATUS_LABEL[savedStatus] : "Not saved"}</b></span>
@@ -331,6 +359,9 @@ export default function ListingEditor({ id }: { id?: string }) {
           {BOX_ORDER_AFTER_IMAGE.map((s) => <TermBox key={s} tax={taxBySlug(s)} selected={termIds} onChange={setTermIds} />)}
         </div>
       </div>
+      {preview && <ListingPreview title={title} content={content} excerpt={excerpt} price={price} priceLabel={priceLabel}
+        featured={featured} image={image} gallery={gallery} status={status}
+        faqs={(Array.isArray(details.faqs) ? details.faqs : []).filter((f: any) => f.q?.trim())} onClose={() => setPreview(false)} />}
       {picker && <MediaPicker onClose={() => setPicker(null)} onSelect={onPick} />}
     </div>
   );

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FileText, X } from "lucide-react";
 import { api, Media } from "@/lib/api";
+import MediaFields from "@/components/MediaFields";
 
 export default function MediaPage() {
   const [items, setItems] = useState<Media[]>([]);
@@ -25,7 +26,7 @@ export default function MediaPage() {
 
   async function saveSel() {
     if (!sel) return;
-    try { await api(`/api/media/${sel.id}`, { method: "PUT", body: JSON.stringify({ title: sel.title, alt_text: sel.alt_text }) }); load(); setSel(null); }
+    try { await api(`/api/media/${sel.id}`, { method: "PUT", body: JSON.stringify({ title: sel.title, alt_text: sel.alt_text, caption: sel.caption, description: sel.description }) }); load(); setSel(null); }
     catch (e: any) { setErr(e.message); }
   }
 
@@ -71,8 +72,7 @@ export default function MediaPage() {
                 <div>{sel.original_name}</div><div>{new Date(sel.created_at).toLocaleDateString()}</div>
                 <div>{(sel.size / 1024).toFixed(0)} KB · {sel.mime_type}</div>
               </div>
-              <div><label className="label">Alt text</label><input className="input" value={sel.alt_text} onChange={(e) => setSel({ ...sel, alt_text: e.target.value })} /></div>
-              <div><label className="label">Title</label><input className="input" value={sel.title} onChange={(e) => setSel({ ...sel, title: e.target.value })} /></div>
+              <MediaFields m={sel} onChange={setSel} />
               <div><label className="label">File URL</label><input className="input" readOnly value={sel.url} onFocus={(e) => e.target.select()} /></div>
               <div className="flex items-center justify-between pt-2">
                 <button className="link-danger" onClick={remove}>Delete permanently</button>

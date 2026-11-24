@@ -1,8 +1,8 @@
 export const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002";
 
-export type Media = { id: number; url: string; original_name: string; title: string; alt_text: string; mime_type: string; size: number; created_at: string };
+export type Media = { id: number; url: string; original_name: string; title: string; alt_text: string; caption: string; description: string; mime_type: string; size: number; created_at: string };
 export type Term = { id: number; taxonomy: string; name: string; slug: string; description: string; parent_id: number | null; parent_name: string | null; image_id: number | null; image_url: string | null; count: number; custom_uri: string };
-export type Post = { id: number; title: string; slug: string; content: string; excerpt: string; status: "draft" | "publish"; featured_media_id: number | null; featured_image_url?: string | null; created_at: string; updated_at: string };
+export type Post = { id: number; title: string; slug: string; content: string; excerpt: string; status: "draft" | "publish"; featured_media_id: number | null; featured_image_url?: string | null; seo?: Record<string, string>; created_at: string; updated_at: string };
 
 export const TAXONOMIES: { slug: string; label: string; singular: string; parentTax?: string; addTitle?: string; parentLabel?: string; searchLabel?: string; hideDescriptionColumn?: boolean; customUri?: boolean; infoBox?: string; countLabel?: string; hideIdColumn?: boolean; hidePermalinkColumn?: boolean; hideParentColumn?: boolean; boxTitle?: string; filterLabel?: string; filterKey?: string }[] = [
   { slug: "listing-category", boxTitle: "Categories", filterLabel: "All Categories", filterKey: "category", label: "Listing Categories", singular: "Category", parentTax: "listing-category" },

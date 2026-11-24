@@ -22,6 +22,7 @@ export default function RichText({ value, onChange }: { value: string; onChange:
   const ref = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const savedRange = useRef<Range | null>(null);
+  const [block, setBlock] = useState("p");
 
   // Sync external value into the editor only when it differs (avoids caret jumps while typing)
   useEffect(() => {
@@ -32,7 +33,13 @@ export default function RichText({ value, onChange }: { value: string; onChange:
   useEffect(() => {
     const onSel = () => {
       const sel = window.getSelection();
-      if (sel && sel.rangeCount && ref.current?.contains(sel.anchorNode)) savedRange.current = sel.getRangeAt(0).cloneRange();
+      if (sel && sel.rangeCount && ref.current?.contains(sel.anchorNode)) {
+        savedRange.current = sel.getRangeAt(0).cloneRange();
+        let n: Node | null = sel.anchorNode;
+        while (n && n !== ref.current && !(n instanceof HTMLElement && /^(P|H[1-6]|PRE|DIV|BLOCKQUOTE|LI)$/.test(n.tagName))) n = n.parentNode;
+        const tag = n instanceof HTMLElement && n !== ref.current ? n.tagName.toLowerCase() : "p";
+        setBlock(["h2", "h3", "h4", "pre"].includes(tag) ? tag : "p");
+      }
     };
     document.addEventListener("selectionchange", onSel);
     return () => document.removeEventListener("selectionchange", onSel);
@@ -173,7 +180,8 @@ export default function RichText({ value, onChange }: { value: string; onChange:
         {mode === "visual" ? (
           <>
             <div className="sticky top-8 z-10flex flex-wrap items-center gap-1 border-b border-[#E8E8E8] bg-[#FAFAF8] p-1">
-              <select className="mr-1 border border-[#E8E8E8] bg-white px-1 py-0.5 text-sm" onChange={(e) => exec("formatBlock", e.target.value)} defaultValue="p">
+              <select className="mr-1 border border-[#E8E8E8] bg-white px-1 py-0.5 text-sm" value={block}
+                onChange={(e) => { const t = e.target.value; restoreSelection(); document.execCommand("formatBlock", false, `<${t}>`); setBlock(t); sync(); }}>
                 <option value="p">Paragraph</option><option value="h2">Heading 2</option><option value="h3">Heading 3</option><option value="h4">Heading 4</option><option value="pre">Preformatted</option>
               </select>
               {tools.slice(0, 3).map(([icon, title, fn]) => (

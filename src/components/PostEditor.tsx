@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { api, Post } from "@/lib/api";
 import MediaPicker from "./MediaPicker";
 import RichText from "./RichText";
+import SeoBox from "./SeoBox";
 
 export default function PostEditor({ id }: { id?: string }) {
   const router = useRouter();
-  const [form, setForm] = useState({ title: "", slug: "", content: "", excerpt: "", featured_media_id: null as number | null });
+  const [form, setForm] = useState({ title: "", slug: "", content: "", excerpt: "", featured_media_id: null as number | null, seo: {} as Record<string, string> });
   const [image, setImage] = useState<string | null>(null);
   const [status, setStatus] = useState<"draft" | "publish">("draft");
   const [picker, setPicker] = useState(false);
@@ -17,7 +18,7 @@ export default function PostEditor({ id }: { id?: string }) {
   useEffect(() => {
     if (!id) return;
     api<Post>(`/api/posts/${id}`).then((p) => {
-      setForm({ title: p.title, slug: p.slug, content: p.content, excerpt: p.excerpt, featured_media_id: p.featured_media_id });
+      setForm({ title: p.title, slug: p.slug, content: p.content, excerpt: p.excerpt, featured_media_id: p.featured_media_id, seo: p.seo || {} });
       setImage(p.featured_image_url || null);
       setStatus(p.status);
     }).catch((e) => setMsg({ ok: false, text: e.message }));
@@ -47,6 +48,8 @@ export default function PostEditor({ id }: { id?: string }) {
             <label className="label">Content</label>
             <RichText value={form.content} onChange={(v) => setForm((f) => ({ ...f, content: v }))} />
           </div>
+          <SeoBox seo={form.seo} onChange={(seo) => setForm((f) => ({ ...f, seo }))} title={form.title} slug={form.slug}
+            setSlug={(slug) => setForm((f) => ({ ...f, slug }))} fallbackDesc={form.excerpt} image={image} />
           <div className="card p-3">
             <label className="label">Excerpt</label>
             <textarea className="input" rows={3} value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} />

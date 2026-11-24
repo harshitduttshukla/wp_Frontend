@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 import { api, Paged, Term, TAXONOMIES } from "@/lib/api";
 import MediaPicker from "./MediaPicker";
 import RichText from "./RichText";
+import TermPreview from "./TermPreview";
 
 type Tax = (typeof TAXONOMIES)[number];
 type SortKey = "name" | "description" | "slug" | "count" | "id";
@@ -27,6 +28,7 @@ export default function TermManager({ tax }: { tax: Tax }) {
   const [quick, setQuick] = useState<{ id: number; name: string; slug: string } | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [picker, setPicker] = useState(false);
+  const [preview, setPreview] = useState<Term | null>(null);
   const [saving, setSaving] = useState(false);
 
   const singularLower = tax.singular.toLowerCase();
@@ -247,6 +249,7 @@ export default function TermManager({ tax }: { tax: Tax }) {
                         <div className="mt-1 flex flex-wrap gap-1 text-[13px] md:invisible md:group-hover:visible">
                           <button className="link" onClick={() => edit(t)}>Edit</button><span className="text-[#a7aaad]">|</span>
                           <button className="link" onClick={() => setQuick({ id: t.id, name: t.name, slug: t.slug })}>Quick Edit</button><span className="text-[#a7aaad]">|</span>
+                          <button className="link" onClick={() => setPreview(t)}>Preview</button><span className="text-[#a7aaad]">|</span>
                           <button className="link-danger" onClick={() => remove(t)}>Delete</button>
                         </div>
                       </td>
@@ -266,6 +269,7 @@ export default function TermManager({ tax }: { tax: Tax }) {
           <BulkBar />
         </div>
       </div>
+      {preview && <TermPreview term={preview} tax={tax} onClose={() => setPreview(null)} />}
       {picker && <MediaPicker onClose={() => setPicker(false)} onSelect={(m) => { setForm({ ...form, image_id: m.id, image_url: m.url }); setPicker(false); }} />}
     </div>
   );
