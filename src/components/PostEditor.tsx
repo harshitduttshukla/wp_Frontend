@@ -5,6 +5,7 @@ import { api, Post } from "@/lib/api";
 import MediaPicker from "./MediaPicker";
 import RichText from "./RichText";
 import SeoBox from "./SeoBox";
+import ListingPreview from "./ListingPreview";
 
 export default function PostEditor({ id }: { id?: string }) {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function PostEditor({ id }: { id?: string }) {
   const [image, setImage] = useState<string | null>(null);
   const [status, setStatus] = useState<"draft" | "publish">("draft");
   const [picker, setPicker] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -59,7 +61,10 @@ export default function PostEditor({ id }: { id?: string }) {
           <div className="card">
             <h2 className="border-b p-3 font-semibold">Publish</h2>
             <div className="space-y-3 p-3 text-sm">
-              <div>Status: <b>{status === "publish" ? "Published" : "Draft"}</b></div>
+              <div className="flex items-center justify-between">
+                <span>Status: <b>{status === "publish" ? "Published" : "Draft"}</b></span>
+                <button className="btn" type="button" onClick={() => setPreview(true)}>Preview</button>
+              </div>
               <div className="flex justify-between gap-2">
                 <button className="btn" disabled={saving} onClick={() => save("draft")}>{status === "publish" ? "Switch to Draft" : "Save Draft"}</button>
                 <button className="btn-primary" disabled={saving} onClick={() => save("publish")}>{status === "publish" ? "Update" : "Publish"}</button>
@@ -76,6 +81,8 @@ export default function PostEditor({ id }: { id?: string }) {
           </div>
         </div>
       </div>
+      {preview && <ListingPreview title={form.title} content={form.content} excerpt={form.excerpt} price="" priceLabel=""
+        featured={false} image={image ? { url: image } : null} gallery={[]} status={status} onClose={() => setPreview(false)} />}
       {picker && <MediaPicker onClose={() => setPicker(false)} onSelect={(m) => { setImage(m.url); setForm({ ...form, featured_media_id: m.id }); setPicker(false); }} />}
     </div>
   );
