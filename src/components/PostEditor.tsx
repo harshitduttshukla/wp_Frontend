@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, Post } from "@/lib/api";
 import MediaPicker from "./MediaPicker";
+import RichText from "./RichText";
 
 export default function PostEditor({ id }: { id?: string }) {
   const router = useRouter();
@@ -43,8 +44,8 @@ export default function PostEditor({ id }: { id?: string }) {
           <input className="input !py-2 !text-xl" placeholder="Add title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           <div className="text-sm text-[#666666]">Slug: <input className="input !inline-block !w-auto !py-0.5" value={form.slug} placeholder="auto" onChange={(e) => setForm({ ...form, slug: e.target.value })} /></div>
           <div className="card p-3">
-            <label className="label">Content (HTML allowed)</label>
-            <textarea className="input font-mono" rows={18} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
+            <label className="label">Content</label>
+            <RichText value={form.content} onChange={(v) => setForm((f) => ({ ...f, content: v }))} />
           </div>
           <div className="card p-3">
             <label className="label">Excerpt</label>
