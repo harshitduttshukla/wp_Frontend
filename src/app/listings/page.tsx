@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, ChevronsUpDown, Star } from "lucide-react";
-import { api, formatPrice, ListingRow, STATUS_LABEL, TAXONOMIES, Term } from "@/lib/api";
+import ListingPreview from "@/components/ListingPreview";
+import { api, formatPrice, Listing, ListingRow, STATUS_LABEL, TAXONOMIES, Term } from "@/lib/api";
 
 type Resp = { items: ListingRow[]; total: number; page: number; pages: number; counts: Record<string, number> };
 type SortKey = "title" | "price" | "status" | "featured" | "id" | "date";
@@ -23,6 +24,8 @@ export default function ListingsPage() {
   const [pageInput, setPageInput] = useState("1");
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [bulk, setBulk] = useState("");
+  const [view, setView] = useState<Listing | null>(null);
+  const openView = (id: number) => api<Listing>(`/api/listings/${id}`).then(setView).catch((e) => alert(e.message));
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
@@ -157,6 +160,7 @@ export default function ListingsPage() {
                   {l.status !== "publish" && <span className="font-semibold text-[#666666]"> — {STATUS_LABEL[l.status]}</span>}
                   <div className="mt-1 flex flex-wrap gap-1 text-[13px] md:invisible md:group-hover:visible">
                     <Link href={`/listings/${l.id}`} className="link">Edit</Link><span className="text-[#a7aaad]">|</span>
+                    <button className="link" onClick={() => openView(l.id)}>View</button><span className="text-[#a7aaad]">|</span>
                     <button className="link" onClick={() => clone(l)}>Clone</button><span className="text-[#a7aaad]">|</span>
                     <button className="link-danger" onClick={() => remove(l)}>Delete</button>
                   </div>
@@ -183,6 +187,10 @@ export default function ListingsPage() {
         </table>
       </div>
       <div className="mt-2 flex justify-end"><Pager /></div>
+      {view && <ListingPreview title={view.title} content={view.content} excerpt={view.excerpt} price={view.price ?? ""} priceLabel={view.price_label || "night"}
+        featured={view.featured} status={view.status} gallery={view.gallery_media || []}
+        image={view.featured_image_url ? { url: view.featured_image_url } : null}
+        faqs={(Array.isArray(view.details?.faqs) ? view.details.faqs : []).filter((f: any) => f.q?.trim())} onClose={() => setView(null)} />}
     </div>
   );
 }

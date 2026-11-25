@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { X, Monitor, Smartphone } from "lucide-react";
+import { X, Monitor, Smartphone, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatPrice } from "@/lib/api";
 
 type Props = {
@@ -13,9 +13,15 @@ export default function ListingPreview(p: Props) {
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [active, setActive] = useState(0);
   const photos = [p.image, ...p.gallery].filter(Boolean) as { url: string }[];
+  const n = photos.length;
+  const cur = n ? ((active % n) + n) % n : 0;
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && p.onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") p.onClose();
+      else if (e.key === "ArrowLeft") setActive((a) => a - 1);
+      else if (e.key === "ArrowRight") setActive((a) => a + 1);
+    };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
@@ -38,12 +44,21 @@ export default function ListingPreview(p: Props) {
           className={`mx-auto bg-white shadow-xl transition-all ${device === "mobile" ? "max-w-[390px]" : "max-w-5xl"}`}>
           {photos.length > 0 ? (
             <div>
-              <img src={photos[Math.min(active, photos.length - 1)].url} alt="" className="aspect-[16/9] w-full object-cover" />
+              <div className="relative">
+                <img src={photos[cur].url} alt="" className="aspect-[16/9] w-full object-cover" />
+                {n > 1 && <>
+                  <button type="button" aria-label="Previous image" onClick={() => setActive(cur - 1)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/85 p-2 shadow hover:bg-white"><ChevronLeft size={22} /></button>
+                  <button type="button" aria-label="Next image" onClick={() => setActive(cur + 1)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/85 p-2 shadow hover:bg-white"><ChevronRight size={22} /></button>
+                  <span className="absolute bottom-3 right-3 rounded bg-black/60 px-2 py-0.5 text-xs text-white">{cur + 1} / {n}</span>
+                </>}
+              </div>
               {photos.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto p-2">
                   {photos.map((ph, i) => (
                     <button key={i} type="button" onClick={() => setActive(i)}
-                      className={`h-16 w-24 shrink-0 overflow-hidden rounded border-2 ${i === active ? "border-brand" : "border-transparent"}`}>
+                      className={`h-16 w-24 shrink-0 overflow-hidden rounded border-2 ${i === cur ? "border-brand" : "border-transparent"}`}>
                       <img src={ph.url} alt="" className="h-full w-full object-cover" />
                     </button>
                   ))}

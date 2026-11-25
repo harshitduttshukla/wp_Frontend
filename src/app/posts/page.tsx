@@ -2,12 +2,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, Post } from "@/lib/api";
+import ListingPreview from "@/components/ListingPreview";
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [status, setStatus] = useState("");
   const [q, setQ] = useState("");
   const [err, setErr] = useState("");
+  const [view, setView] = useState<Post | null>(null);
 
   const load = () => api<Post[]>(`/api/posts?status=${status}&q=${encodeURIComponent(q)}`).then(setPosts).catch((e) => setErr(e.message));
   useEffect(() => { load(); }, [status, q]); // eslint-disable-line
@@ -45,6 +47,7 @@ export default function PostsPage() {
                   {p.status === "draft" && <span className="font-semibold text-[#666666]"> — Draft</span>}
                   <div className="mt-1 flex gap-2 text-xs md:opacity-0 md:group-hover:opacity-100">
                     <Link href={`/posts/${p.id}`} className="link">Edit</Link>|
+                    <button className="link" onClick={() => api<Post>(`/api/posts/${p.id}`).then(setView).catch((e) => setErr(e.message))}>View</button>|
                     <button className="link-danger" onClick={() => remove(p)}>Trash</button>
                   </div>
                 </td>
@@ -55,6 +58,8 @@ export default function PostsPage() {
           </tbody>
         </table>
       </div>
+      {view && <ListingPreview title={view.title} content={view.content} excerpt={view.excerpt} price="" priceLabel="" featured={false}
+        image={view.featured_image_url ? { url: view.featured_image_url } : null} gallery={[]} status={view.status} onClose={() => setView(null)} />}
     </div>
   );
 }
