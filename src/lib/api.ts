@@ -13,13 +13,27 @@ export const TAXONOMIES: { slug: string; label: string; singular: string; parent
   { slug: "listing-status", boxTitle: "Property Status", label: "Listing Status", singular: "Status", parentTax: "listing-status", parentLabel: "Parent Category", searchLabel: "Search Categories", customUri: true, hideIdColumn: true, hidePermalinkColumn: true, hideParentColumn: true, infoBox: "For extra details like media, documents, maps, custom info, etc - you need to click edit after the term was added." },
 ];
 
+const TOKEN_KEY = "pajasa_token";
+export const getToken = () => (typeof window === "undefined" ? null : localStorage.getItem(TOKEN_KEY));
+export const setToken = (t: string | null) => (t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY));
+
 export async function api<T = any>(path: string, init?: RequestInit): Promise<T> {
   const isForm = init?.body instanceof FormData;
+  const token = getToken();
   const res = await fetch(`${API}${path}`, {
     ...init,
-    headers: isForm ? init?.headers : { "Content-Type": "application/json", ...init?.headers },
+    headers: {
+      ...(isForm ? {} : { "Content-Type": "application/json" }),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
     cache: "no-store",
   });
+  if (res.status === 401 && !path.startsWith("/api/auth/login")) {
+    // Session missing or expired: back to the login page
+    setToken(null);
+    if (typeof window !== "undefined" && window.location.pathname !== "/login") window.location.href = "/login";
+  }
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
